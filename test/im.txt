@@ -1,0 +1,88 @@
+print("1. Basic print\n")
+
+let text="2. Basic let with block\n"
+  print(text)
+  
+  print(text)
+
+def one_line()
+  print("3. def with first print") ; print("and second")
+
+one_line()
+
+newline()
+
+def hello_world(w)
+  let text = "4. function definition with let inside"
+    print(text)
+  print(w)
+  
+def fib(n)
+  if (n < 2)
+    n
+  else
+    fib(n-1)+fib(n-2)
+
+if (1) print("4. One armed if\n")
+if (1) print("5. one line if with else") else print("ERROR In else")
+
+newline()
+
+def fib2(n)
+  if (n<2) n else fib(n-1)+fib(n-2)
+  
+print("6. single line complex") ; print("second part\n")
+if (1)
+  print("7. block IF")
+  print(",second statement\n")
+else
+  print("Hello Else")
+
+hello_world("8. function call with parameter\n")
+
+newline() 
+
+print("9. a pair")
+
+print(pair(1,2))
+
+newline()
+
+def make_assert(e)
+  42
+
+def assert()
+  trans(seq(expression()), make_assert)  
+set_macro("assert", assert())
+
+print(assert (1+2+3))
+
+newline()
+
+print("11. HTML macro")
+
+def html()
+  trans(seq(body()), make_html)
+def title()
+  trans(seq(expression()), make_title)
+  
+set_macro("html", html())
+set_macro("title", title())
+
+html
+  title "hello"
+
+newline()
+
+print("12. unless macro support")
+def parse_unless() trans(seq(expression(),colon(),body()), rewrite_unless)
+
+set_macro("unless", parse_unless())
+
+unless 1=0: print("UNLESS macro works\n")
+
+newline()
+
+print("end of example")
+
+def list(*s) s

@@ -1,0 +1,16 @@
+print('p')
+
+def list(*s) s
+
+print(list(1,2,3,4))
+
+"012345"[1]
+print((fn(a) a)(1))
+
+def map(proc, l)
+  if (l.null?)
+    l
+  else
+    pair(proc(l.head), map(proc, l.tail))
+
+print(map((fn(s) s+1), list(1,2,3,4)))
