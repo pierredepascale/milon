@@ -1,3 +1,4 @@
+#! /home/pierre/local/bin/gsi -:s
 ;;; im.scm -- indentation matters python like parsing
 
 #;(define (error . msg)
@@ -22,7 +23,7 @@
     (lambda (p)
       (start-of-file p (lambda () (lex p))))))
 
-(define *ops* '(#\+ #\- #\* #\/ #\= #\< #\> #\:))
+(define *ops* '(#\+ #\- #\* #\/ #\= #\< #\> #\: #\%))
 
 (define (lex port)
   (skip-blanks port
@@ -32,7 +33,9 @@
                    (cond ((eof-object? ch) (map (lambda (e) ':dedent) (pop-indents-to! 0)))
                          ((char=? ch #\") (read-string-literal port)) ; " makes a2ps happy
                          ((char-numeric? ch) (read-number-literal port))
-                         ((or (char-alphabetic? ch)) (read-identifier port))
+                         ((or (char-alphabetic? ch)
+			      (char=? ch #\_))
+			  (read-identifier port))
                          ((char=? ch #\newline) (read-char port) (cons ':nl (lex port)))
                          ((char=? ch #\() (read-char port) (cons ':open-paren (lex port)))
                          ((char=? ch #\)) (read-char port) (cons ':close-paren (lex port)))
@@ -341,8 +344,8 @@
        (:id)
        (:num)
        (:char)
-       (=> (:kw 'true) (lambda (kw) #t))
-       (=> (:kw 'false) (lambda (kw) #f))
+;       (=> (:kw 'true) (lambda (kw) #t))
+;       (=> (:kw 'false) (lambda (kw) #f))
        (macro)
        (=> (seq (:kw 'fn) (:kw ':open-paren) (formals) (:kw ':close-paren) (body))
 	   (lambda (:fn :open args :close body) (list 'fn args (cons 'begin body))))
@@ -382,7 +385,7 @@
 
 (define *macros* '())
 (define (set-macro! name parser)
-  (display (list 'set-macro name parser)) (newline)
+  ;;(display (list 'set-macro name parser)) (newline)
   (let ((entry (assq name *macros*)))
     (if entry
         (set-cdr! entry parser)
@@ -445,7 +448,7 @@
       (ev-toplevel (cadddr test) env)))
 
 (define (ev-def def env)
-  (display ";; def") (display def) (newline)
+  ;;(display ";; def") (display def) (newline)
   (bind-global! (cadr def) (ev-toplevel (caddr def) env))
   #f)
 
@@ -486,17 +489,42 @@
 (def '* *)
 (def '< <)
 (def '<= <)
-(def '= equal?)
+(def '_eq equal?)
 (def '> >)
 (def '>= >=)
 (def '% modulo)
 
+(def '_exp exp)
+(def '_log log)
+(def '_sin sin)
+(def '_cos cos)
+(def '_tan tan)
+(def '_asin asin)
+(def '_acos acos)
+(def '_atan atan)
+(def '_sqrt sqrt)
+(def '_expt expt)
+(def '_number? number?)
+(def '_real? real?)
+(def '_integer? integer?)
+
+(def '_neg (lambda (a) (- a)))
+(def '_floor floor)
+(def '_ceiling ceiling)
+(def '_truncate truncate)
+(def '_round round)
+
 ;; booleans
 (def 'not not)
 (def 'bool? boolean?)
+(def 'true #t)
+(def 'false #f)
 
 ;; chars
 (def 'char? char?)
+(def '_char=? char=?)
+(def '_char_to_integer char->integer)
+(def '_integer_to_char integer->char)
 
 ;; pairs
 (def 'pair? pair?)
@@ -504,15 +532,28 @@
 (def 'head car)
 (def 'tail cdr)
 (def 'null? null?)
+(def 'nil '())
+
+;; strings
+
+(def '_make_string make-string)
+(def '_string_ref string-ref)
+(def '_string_set! string-set!)
+(def '_string_length string-length)
 
 ;; vectors
-(def 'vector? vector?)
 
-(def 'elt (lambda (c i)
-	    (cond ((string? c) (string-ref c i))
-		  ((pair? c) (list-ref c i))
-		  ((vector? c) (vector-ref c i))
-		  (else (error "bad type for REF" c)))))
+(def '_vector? vector?)
+(def '_make_vector make-vector)
+(def '_vector_ref vector-ref)
+(def '_vector_set! vector-set!)
+(def '_vector_length vector-length)
+
+;; (def 'elt (lambda (c i)
+;; 	    (cond ((string? c) (string-ref c i))
+;; 		  ((pair? c) (list-ref c i))
+;; 		  ((vector? c) (vector-ref c i))
+;; 		  (else (error "bad type for REF" c)))))
 
 ;; i/o
 (def 'print display)
@@ -544,7 +585,10 @@
 (def 'make_title (lambda (e) `(begin (print "<title>") (print ,e) (print "</title>"))))
 (def 'rewrite_unless (lambda (test :colon body) #;(display (list 'unless test :colon body)) #;(newline) #;(display `(if ,test 0 ,body)) #;(newline) `(if ,test 0 (begin ,@body))))
 
-(def 'use (lambda (id) (eval-file (if (symbol? id) (symbol->string id) id))))
+(def 'use 
+     (lambda (id)
+       (let ((fn (locate-file (if (symbol? id) (symbol->string id) id))))
+	 (eval-file fn))))
 
 ;;; entry
 
@@ -552,11 +596,49 @@
   (let lp ((tokens (lex-from-file filename)))
     ;(display ";; evaluating from ") (display tokens) (newline)
     (if (null? tokens)
-        (display ";; evaluation done")
+        123;;(display ";; evaluation done")
         (let ((parse (parse (top) tokens)))
           (if parse
               (begin
                 ;(display ";; parsed as ") (display parse) (newline)
-                (ev-toplevel (car parse) *global*)
+                (ev-toplevel (car parse) '())
                 (lp (cadr parse)))
               (begin (display "Error evaluating file:") (display tokens) (newline)))))))
+
+(define *module-path* '("."))
+
+(define (locate-file fn)
+  (let lp ((paths *module-path*))
+;    (display paths) (newline)
+    (if (null? paths)
+	(error "Couldn't find module ~a" fn)
+	(let* ((path (car paths))
+	       (filename (string-append path "/" fn ".milon")))
+	  ;;(display ";; testing") (display filename) (newline)
+	  (if (file-exists? filename)
+	      filename
+	      (lp (cdr paths)))))))
+
+(define (repl-milon)
+  (display "REPL>") (newline))
+
+(define (main . args)
+  (if (null? args)
+      (repl-milon)
+      (let lp ((args args))
+	(if (null? args)
+	    'ok
+	    (let ((arg (car args)))
+	      (cond ((string=? arg "--path")
+		     (if (pair? (cdr args))
+			 (begin
+			   (set! *module-path* (cons (cadr args) *module-path*))
+			   (lp (cddr args)))
+			 (error "missing argument to --path option")))
+		    ((string=? arg "--repl")
+		     (repl-milon))
+		    (else
+		     ;;(display ";; evaluating ") (display arg) (newline)
+		     (eval-file arg)
+		     (lp (cdr args)))))))))
+

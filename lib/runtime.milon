@@ -1,0 +1,164 @@
+# runtime.milon -- 
+
+# boolean
+
+def = (o1,o2) _eq(o1, o2)
+def not(s) if (s) false else true
+
+# number
+
+def exp(z) _exp(z)
+def log(z) _log(z)
+def sin(z) _sin(z)
+def cos(z) _cos(z)
+def tan(z) _tan(z)
+def asin(z) _asin(z)
+def acos(z) _acos(z)
+def atan(z) _atan(z)
+def sqrt(z) _sqrt(z)
+def expt(z,n) _expt(z,n)
+
+def number?(o) _number?(o)
+def real?(o) _real?(o)
+def integer?(o) _integer?(o)
+
+def zero?(z) z = 0
+def positive?(z) z >= 0
+def negative?(z) z < 0
+def odd?(n) n % 2 = 1
+def even?(n) n % 2 = 0
+
+def _max(l,m)
+  if (l.null?) m else if (l.head > m) _max(l.tail, l.head) else _max(l.tail, m)
+  
+def max(*l)
+  if (null?(l)) 0 else _max(l.tail, l.head)
+
+def _min(l,m)
+  if (l.null?) m else if (l.head < m) _min(l.tail, l.head) else _min(l.tail, m)
+  
+def min(*l)
+  if (null?(l)) 0 else _min(l.tail, l.head)
+
+def abs(n) if (n.negative?) neg(n) else n
+def gcd(m,n) m
+def lcm(m,n) m
+
+def floor(z) z
+def ceiling(z) z
+def truncate(z) z
+def round(z) z
+
+# list
+
+def for_each(f,l)
+  if (null?(l))
+    nil
+  else
+    f(l.head)
+    for_each(f,l.tail)
+
+def map(f,l)
+  if (null?(l)) l else pair(f(l.head), map(f,l.tail))
+
+def list(*l) l
+
+def list?(l) pair?(l)
+
+def length(l) if (null?(l)) 0 else 1+length(l.tail)
+
+def append(l1, l2)
+  if (null?(l1))
+    l2
+  else if (null?(l2))
+    l1
+  else
+    pair(l1.head, append(l1.tail, l2))
+
+def _rev(l, aux)
+  if (l.null?) aux else _rev(l.tail, pair(l.head, aux))
+
+def reverse(l) _rev(l, nil)
+
+def list_tail(l,n) nil
+
+def list_ref(l,n) l
+
+def list_set!(l,n,o) o
+
+def member(e,l) e
+
+def assoc(e,l) e
+
+# string
+
+def make_string(n,ch) _make_string(n,ch)
+
+def _compare(s1, s2, i)
+  if (_string_ref(s1, i) = _string_ref(s2, i))
+    _compare(s1,s2,i+1)
+  else
+    false
+
+def string=?(s1,s2)
+  if (s1.string_length = s2.string_length)
+    _compare(s1,s2,0)
+    
+
+def string_lt(s1,s2) s1
+
+def string_lte(s1,s2) s1
+def string_gt(s1,s2) s1
+def string_gte(s1,s2) s1
+
+def _substring!(r,s,m,n,i)
+  if (m = n)
+    r
+  else
+    _string_set!(r,i,_string_ref(s,m))
+    _substring!(r,s,m+1,n,i+1)
+
+def substring(s1,m,n)
+  let r = _make_string(n-m, ' ')
+    _substring!(r,s1,m,n,0)
+
+def string_append(s1,s2) s1
+
+def string_to_list(s) nil
+
+def list_to_string(s) nil
+
+def string_copy(s) substring(s,0,string_length(s))
+
+def string_fill!(s, ch) s
+def number_to_string(n) "0"
+def string_to_number(s) 0
+
+# vector
+
+def vector(*e) list_to_vector(e)
+def vector?(o) _vector?(o)
+
+def vector_ref(v,i) _vector_ref(v,i)
+def vector_set!(v,i,o) _vector_set(v,i,o)
+def make_string(n, o) _make_vector(n,o)
+
+def vector_to_list(v) nil
+
+def list_to_vector(l) nil
+
+# char
+
+def char=?(c1,c2) _char=?(c1,c2)
+def char?(o) _char?(o)
+def char_alphabetic?(ch) nil
+def char_numeric?(ch) nil
+def char_whitespace?(ch) nil
+def char_upper_case?(ch) nil
+def char_lower_case?(ch) nil
+
+def char_to_integer(ch) _char_to_integer(ch)
+def integer_to_char(ch) _integer_to_char(ch)
+
+def char_upcase(ch) ch
+def char_downcase(ch) ch

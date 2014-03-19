@@ -1,0 +1,7 @@
+# test
+
+use("runtime")
+
+
+print("Hello world")
+print(substring("0123456789",1,5))

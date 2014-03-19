@@ -1,6 +1,6 @@
 print("1. Basic print\n")
 
-let text="2. Basic let with block\n"
+let text = "2. Basic let with block\n"
   print(text)
   
   print(text)
